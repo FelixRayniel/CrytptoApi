@@ -1,32 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CryptoApi.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+public class CoinsController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
 
-    private readonly ILogger<WeatherForecastController> _logger;
+    private readonly ILogger<CoinsController> _logger;
+    private Contexto _contexto;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public CoinsController(ILogger<CoinsController> logger,Contexto contexto)
     {
         _logger = logger;
+        _contexto = contexto;
     }
 
-    [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    [HttpGet(Name = "GetCoins")]
+    public IEnumerable<Coins> Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = DateTime.Now.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        })
-        .ToArray();
+        return _contexto.Coins.AsNoTracking().ToList() ;
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Coins>> PostCoin(Coins coin){
+
+        _contexto.Coins.Add(coin);
+
+        await _contexto.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(PostCoin), coin);
     }
 }
